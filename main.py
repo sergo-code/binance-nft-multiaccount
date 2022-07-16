@@ -5,23 +5,24 @@ import os
 
 
 def upload_file(client, P20TToken, CSRFToken):
-    with open('mysteryBox/config_pattern.py') as pattern_file:
+    directory = 'binanceNFT'
+    with open(f'{directory}/config_pattern.py') as pattern_file:
         program = pattern_file.read()
     program = program.replace('<p20t>', P20TToken).replace('<csrf>', CSRFToken)
 
-    with open(f'mysteryBox/config.py', 'w') as files:
+    with open(f'{directory}/config.py', 'w') as files:
         files.write(program)
 
     sftp = client.open_sftp()
     remotepath = 'mysteryBox.py'
-    localpath = './mysteryBox/mysteryBox.py'
+    localpath = f'./{directory}/mysteryBox.py'
     sftp.put(localpath, remotepath)
     remotepath = 'config.py'
-    localpath = './mysteryBox/config.py'
+    localpath = f'./{directory}/config.py'
     sftp.put(localpath, remotepath)
     if sftp:
         sftp.close()
-    os.remove('mysteryBox/config.py')
+    os.remove(f'{directory}/config.py')
 
 
 def exec_command(client, command):
