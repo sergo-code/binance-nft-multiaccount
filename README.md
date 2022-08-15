@@ -1,27 +1,35 @@
 # binance-nft-multiaccount
 
-### Описание
-Автоматизация процесса отправки программы на сервер и ее запуск. Уточнение, в исходных файлах находится заглушка(binanceNFT), которая демонстрирует работу программы, но не произодит никаких действий с сервисом Binance. Сделано для быстрого запуска множества аккаунтов.  
-Чтобы не терять сессию при отключении используется менеджер терминалов. Для проверки работоспособности подключаемся вручную к серверу и вводим следующую команду  
+- Automating the process of sending a program to the server and launching it  
+- Made to quickly launch multiple accounts  
+- binanceNFT is a stub that demonstrates the operation of the program: authorization and sending user data to you in a telegram
+### tmux 
+[tmux](https://github.com/tmux/tmux/wiki/Getting-Started) is installed on the servers so as not to lose the session when disconnecting.
+
+Connections to an active session on the server:  
 ```
 tmux a -t test
 ```
-Для выхода из сессии tmux:  
-- Оставить работать в фоне: CTRL+B D  
-- Остановить работу: CTRL+D  
+Exiting the session: 
+- Leave to work in the background: CTRL+B  D  
+- Stop working: CTRL+D  
 
-Подробнее о [tmux](https://github.com/tmux/tmux/wiki/Getting-Started)
-### Запуск
-1) Заполнить файл data.xlsx
-2) Заполнить данные для телеграмма в файле config.py
-(Служит для отправки уведомления в телеграм, как удаленное подтверждение запуска программы)
-3) Установить все зависимости  
+### Launch
+1) Fill in the file profiles.xlsx
+2) Fill in the telegram data in the file binanceNFT/config_template.py
+3) Install all dependencies 
 ```
 pip install -r requirements.txt
 ```
-4) Запустить программу  
+4) Start the program  
 ```
 python3 main.py
 ```
-### Дополнительно
-В директорию mysteryBox добавить свою программу и отредактировать код, чтобы передавались данные авторизации.
+### Сustomization
+- For Binance:  
+  - Add your program to the binanceNFT directory and replace the config so that authorization data is transmitted.  
+- Not for Binance:  
+  - Replace the binanceNFT directory with your own  
+  - In main.py define excel table headers  
+  - Edit config.py  
+  - In functions.py change the logic of the application launch
