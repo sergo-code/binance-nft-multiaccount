@@ -1,69 +1,45 @@
 import paramiko
 import pandas as pd
 import json
-import os
+from errors import *
 
-
-def upload_file(client, P20TToken, CSRFToken):
-    directory = 'binanceNFT'
-    with open(f'{directory}/config_pattern.py') as pattern_file:
-        program = pattern_file.read()
-    program = program.replace('<p20t>', P20TToken).replace('<csrf>', CSRFToken)
-
-    with open(f'{directory}/config.py', 'w') as files:
-        files.write(program)
-
-    sftp = client.open_sftp()
-    remotepath = 'mysteryBox.py'
-    localpath = f'./{directory}/mysteryBox.py'
-    sftp.put(localpath, remotepath)
-    remotepath = 'config.py'
-    localpath = f'./{directory}/config.py'
-    sftp.put(localpath, remotepath)
-    if sftp:
-        sftp.close()
-    os.remove(f'{directory}/config.py')
-
-
-def exec_command(client, command):
-    stdout, = client.exec_command(command)[1:2]
-    data = stdout.read().decode()
-    if data:
-        return False
-    else:
-        return True
-
-
-def send_command(client):
-    tmux_installed = exec_command(client, 'apt list --installed | grep tmux')
-    if tmux_installed:
-        exec_command(client, 'sudo apt update')
-        exec_command(client, 'sudo apt install tmux -y')
-
-    exec_command(client, "tmux new -d -s test")
-    exec_command(client, "tmux send-keys -t test.0 'python3 mysteryBox.py' ENTER")
+from functions import *
+from config import *
 
 
 def main():
-    # paramiko.util.log_to_file("paramiko.log")
-    df = pd.read_excel('data.xlsx')
-    data_json = json.loads(df.to_json(orient='records'))
+    path = os.getcwd() + '/' + directory
 
-    print(f'Количество профилей: {len(data_json)}')
-
-    for profile in data_json:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        try:
-            client.connect(hostname=profile['HOST'], username=profile['USER'], password=profile['PASSWORD'], port=22)
-
-            upload_file(client, profile['P20TToken'], profile['CSRFToken'])
-            send_command(client)
-
-            if client:
-                client.close()
-        except TimeoutError:
-            print(f'Что-то не так с сервером / данными [{profile["HOST"]}]')
+    paramiko.util.log_to_file("paramiko.log", 'INFO')
+    # Loading profiles
+    df = pd.read_excel(io=f'{exel_file}', sheet_name=0)
+    profiles = json.loads(df.to_json(orient='records'))
+    print(f'Number of profiles: {len(profiles)}')
+    # Launching all profiles
+    for profile in profiles:
+        with paramiko.SSHClient() as client:
+            try:
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                client.connect(hostname=profile['HOST'],
+                               username=profile['USER'],
+                               password=profile['PASSWORD'],
+                               port=22)
+                # File processing
+                config_replacement(directory,
+                                   template,
+                                   config,
+                                   profile['P20TToken'],
+                                   profile['CSRFToken'],
+                                   profile['APICaptchaToken'],
+                                   profile['Count'])
+                # Сreating a directory for files
+                exec_command(client, f"mkdir {directory}")
+                # Uploading files to the server
+                upload_file(client, directory, config, path, template)
+                # Installing dependencies and running the program
+                application_launch_logic(client, directory, executable, requirements, path)
+            except TimeoutError:
+                print(ERROR_TIMEOUT, profile["HOST"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,6 @@
+directory = 'binanceNFT'
+template = 'config_template.py'
+config = 'config.py'
+executable = 'mysteryBox.py'
+requirements = 'requirements.txt'
+exel_file = 'profiles.xlsx'
